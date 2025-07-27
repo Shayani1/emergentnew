@@ -498,6 +498,16 @@ const ForexTradingBot = () => {
               </div>
               
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-blue-800">Cookie Status</h3>
+                  {lastCookieTest && (
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      lastCookieTest.includes('VALID') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {lastCookieTest}
+                    </span>
+                  )}
+                </div>
                 <h3 className="font-bold text-blue-800 mb-2">How to Get TradingView Session Cookie:</h3>
                 <ol className="text-sm text-blue-700 space-y-1">
                   <li>1. Open TradingView.com in your browser</li>
