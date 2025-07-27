@@ -15,7 +15,8 @@ const ForexTradingBot = () => {
   const [selectedPair, setSelectedPair] = useState("EURUSD");
   const [cookieValue, setCookieValue] = useState("");
   const [userAgent, setUserAgent] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [marketStatus, setMarketStatus] = useState({ isOpen: true, session: "UNKNOWN" });
+  const [lastCookieTest, setLastCookieTest] = useState("");
 
   useEffect(() => {
     fetchSignals();
