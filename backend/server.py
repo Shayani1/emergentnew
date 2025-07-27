@@ -669,27 +669,73 @@ async def root():
     return {"message": "Forex Trading Signal Bot API v1.0", "status": "active"}
 
 @api_router.post("/session-cookie", response_model=SessionCookie)
-async def update_session_cookie(cookie_value: str, user_agent: str = None):
+async def update_session_cookie(request: dict):
     """Update TradingView session cookie for scraping"""
     try:
+        cookie_value = request.get("cookie_value")
+        user_agent = request.get("user_agent") or random.choice(USER_AGENTS)
+        
+        if not cookie_value:
+            raise HTTPException(status_code=400, detail="cookie_value is required")
+        
+        # Test the cookie immediately
+        test_result = await test_cookie_validity(cookie_value, user_agent)
+        
         # Deactivate old cookies
         await db.session_cookies.update_many({}, {"$set": {"is_active": False}})
         
         # Add new cookie
         cookie_data = {
             "cookie_value": cookie_value,
-            "user_agent": user_agent or random.choice(USER_AGENTS),
+            "user_agent": user_agent,
             "created_at": datetime.utcnow(),
-            "is_active": True
+            "is_active": True,
+            "test_result": test_result
         }
         
         cookie_obj = SessionCookie(**cookie_data)
         await db.session_cookies.insert_one(cookie_obj.dict())
         
+        logger.info(f"Cookie updated successfully. Test result: {test_result}")
+        
         return cookie_obj
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Cookie update failed: {str(e)}")
+
+async def test_cookie_validity(cookie_value: str, user_agent: str) -> str:
+    """Test if the provided cookie works with TradingView"""
+    try:
+        headers = {
+            "User-Agent": user_agent,
+            "Cookie": cookie_value,
+            "Referer": "https://www.tradingview.com/",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        
+        # Test with a simple TradingView request
+        url = "https://scanner.tradingview.com/forex/scan"
+        payload = {
+            "filter": [{"left": "name", "operation": "match", "right": "EURUSD"}],
+            "columns": ["name", "close", "high", "low", "open", "volume"],
+            "sort": {"sortBy": "name", "sortOrder": "asc"},
+            "range": [0, 1]
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get("data") and len(data["data"]) > 0:
+                        return "VALID - Real data accessible"
+                    else:
+                        return "VALID - Response received but no data"
+                else:
+                    return f"INVALID - HTTP {response.status}"
+                    
+    except Exception as e:
+        return f"ERROR - {str(e)}"
 
 @api_router.get("/signals", response_model=List[TradingSignal])
 async def get_signals(limit: int = 10):
