@@ -54,6 +54,15 @@ const ForexTradingBot = () => {
     }
   };
 
+  const fetchPerformance = async () => {
+    try {
+      const response = await axios.get(`${API}/performance`);
+      setPerformance(response.data);
+    } catch (error) {
+      console.error("Error fetching performance:", error);
+    }
+  };
+
   const fetchMarketStatus = async () => {
     try {
       const response = await axios.get(`${API}/performance`);
