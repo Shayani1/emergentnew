@@ -83,6 +83,7 @@ class SessionCookie(BaseModel):
     user_agent: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = True
+    test_result: str = "NOT_TESTED"
 
 class ICTAnalysis(BaseModel):
     liquidity_levels: List[float]
