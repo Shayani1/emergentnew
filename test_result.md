@@ -209,15 +209,18 @@ backend:
 
   - task: "Background signal generation task"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented continuous signal generation background task that scans all pairs every hour"
+      - working: true
+        agent: "testing"
+        comment: "Background signal generation task implemented and running. Continuous scanning of all forex pairs every hour with proper error handling. MongoDB integration working for signal storage with UUID-based IDs. Task properly started on application startup."
 
 frontend:
   - task: "React dashboard with modern UI and navigation"
