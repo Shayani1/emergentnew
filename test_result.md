@@ -119,15 +119,18 @@ backend:
 
   - task: "TradingView scraper with anti-detection measures"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main" 
         comment: "Implemented TradingView scraper with cookie rotation, user-agent rotation, and fallback to demo data when scraping fails"
+      - working: true
+        agent: "testing"
+        comment: "TradingView scraper working correctly. Successfully retrieving market data for all forex pairs (EURUSD, GBPUSD, USDJPY, XAUUSD). Fallback data source functioning when cookies unavailable. Anti-detection measures implemented with user-agent rotation."
 
   - task: "ICT/SMC analysis engine with liquidity levels, order blocks, FVG detection"
     implemented: true
