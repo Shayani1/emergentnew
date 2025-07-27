@@ -134,15 +134,18 @@ backend:
 
   - task: "ICT/SMC analysis engine with liquidity levels, order blocks, FVG detection"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented comprehensive ICT analysis including liquidity levels detection, order blocks identification, fair value gaps, market structure analysis, and confluence scoring"
+      - working: true
+        agent: "testing"
+        comment: "ICT/SMC analysis engine fully operational. Successfully detecting liquidity levels, order blocks, and fair value gaps. Market structure analysis working with proper confluence scoring (60% minimum threshold enforced). All ICT methodology components implemented correctly."
 
   - task: "Gemini AI integration for advanced signal analysis"
     implemented: true
