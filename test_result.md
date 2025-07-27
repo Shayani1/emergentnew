@@ -194,15 +194,18 @@ backend:
 
   - task: "API endpoints for signal management and market data"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoints: /api/signals, /api/generate-signal, /api/scan-all-pairs, /api/market-data/{pair}, /api/performance, /api/session-cookie"
+      - working: true
+        agent: "testing"
+        comment: "All API endpoints working correctly. Health check (/api/), performance stats (/api/performance), signal retrieval (/api/signals), signal generation (/api/generate-signal), market data (/api/market-data/{pair}), bulk scanning (/api/scan-all-pairs), and cookie management (/api/session-cookie) all functional with proper JSON responses."
 
   - task: "Background signal generation task"
     implemented: true
