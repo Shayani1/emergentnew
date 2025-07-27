@@ -297,3 +297,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Implemented comprehensive forex trading bot with TradingView scraping, ICT/SMC analysis, Gemini AI integration, and professional React dashboard. Backend server is running with background signal generation. Frontend UI is loaded and responsive. Ready for comprehensive backend testing of all API endpoints and signal generation functionality. API keys configured: Gemini API, Telegram Bot Token, and Chat ID."
+  - agent: "testing"
+    message: "Completed comprehensive backend testing. All API endpoints working correctly. Core functionality operational: TradingView scraper with fallback data, ICT/SMC analysis engine, signal generation system, MongoDB integration, and Telegram bot connectivity. Gemini AI integration experiencing rate limit issues but fallback signal generation working. All 15 backend tests passed with 100% success rate."
