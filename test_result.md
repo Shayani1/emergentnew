@@ -164,15 +164,18 @@ backend:
 
   - task: "Trading signal generation with entry/exit points and confluence scoring"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented signal generation with BUY/SELL directions, entry prices, stop losses, multiple take profits, confidence scoring, and detailed reasoning"
+      - working: true
+        agent: "testing"
+        comment: "Signal generation system working correctly. Properly enforcing 60% confluence threshold. Generating signals with all required components: direction (BUY/SELL), entry_price, stop_loss, take_profit levels (1,2,3), confidence score, and ICT/SMC reasoning. ATR-based calculations implemented."
 
   - task: "Telegram bot integration for signal delivery"
     implemented: true
