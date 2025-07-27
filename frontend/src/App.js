@@ -94,14 +94,33 @@ const ForexTradingBot = () => {
   };
 
   const updateSessionCookie = async () => {
+    if (!cookieValue.trim()) {
+      alert("Please enter a cookie value");
+      return;
+    }
+    
     try {
-      const response = await axios.post(`${API}/session-cookie?cookie_value=${encodeURIComponent(cookieValue)}&user_agent=${encodeURIComponent(userAgent)}`);
-      alert("Session cookie updated successfully!");
+      const response = await axios.post(`${API}/session-cookie`, {
+        cookie_value: cookieValue,
+        user_agent: userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+      });
+      
+      if (response.data.test_result) {
+        alert(`Session cookie updated successfully!\nTest Result: ${response.data.test_result}`);
+      } else {
+        alert("Session cookie updated successfully!");
+      }
+      
       setCookieValue("");
       setUserAgent("");
+      
+      // Refresh market data to test the new cookie
+      fetchMarketData();
+      
     } catch (error) {
       console.error("Error updating cookie:", error);
-      alert("Error updating session cookie");
+      const errorMsg = error.response?.data?.detail || "Error updating session cookie";
+      alert(`Failed to update cookie: ${errorMsg}`);
     }
   };
 
