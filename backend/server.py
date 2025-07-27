@@ -978,22 +978,52 @@ async def get_performance():
 
 # Background task for continuous signal generation
 async def continuous_signal_generation():
-    """Background task to continuously generate signals"""
+    """Background task to continuously generate signals based on market sessions"""
     while True:
         try:
-            logger.info("Starting signal generation cycle...")
+            if not signal_generator.is_market_open():
+                logger.info("Market closed - sleeping for 30 minutes")
+                await asyncio.sleep(1800)  # 30 minutes
+                continue
+            
+            current_session = signal_generator.get_trading_session()
+            session_priority = signal_generator.get_session_priority(current_session)
+            
+            # Calculate scan interval based on session priority
+            scan_intervals = {
+                5: 300,   # 5 minutes for London/NY overlap
+                3: 900,   # 15 minutes for single sessions
+                1: 3600   # 60 minutes for Asian/unknown
+            }
+            
+            scan_interval = scan_intervals.get(session_priority, 3600)
+            
+            logger.info(f"Starting signal generation cycle - Session: {current_session}, Interval: {scan_interval}s")
+            
+            signals_generated = 0
             
             for pair in FOREX_PAIRS:
-                signal = await signal_generator.generate_signal(pair, "1h")
-                if signal:
-                    await db.trading_signals.insert_one(signal.dict())
-                    logger.info(f"Generated signal for {pair}: {signal.direction} at {signal.entry_price}")
-                
-                # Delay between pairs
-                await asyncio.sleep(30)
+                try:
+                    signal = await signal_generator.generate_signal(pair, "1h")
+                    if signal:
+                        await db.trading_signals.insert_one(signal.dict())
+                        signals_generated += 1
+                        logger.info(f"Generated signal for {pair}: {signal.direction} at {signal.entry_price} (Confidence: {signal.confidence:.1f}%)")
+                    
+                    # Delay between pairs to avoid rate limiting
+                    await asyncio.sleep(random.uniform(5, 10))
+                    
+                except Exception as e:
+                    logger.error(f"Error generating signal for {pair}: {e}")
+                    continue
             
-            # Wait 1 hour before next cycle
-            await asyncio.sleep(3600)
+            if signals_generated > 0:
+                logger.info(f"Generation cycle complete - {signals_generated} signals generated")
+            else:
+                logger.info("Generation cycle complete - no signals met requirements")
+            
+            # Wait for next cycle based on session priority
+            await asyncio.sleep(scan_interval)
             
         except Exception as e:
             logger.error(f"Continuous generation error: {e}")
