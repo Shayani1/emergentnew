@@ -120,10 +120,13 @@ const ForexTradingBot = () => {
         user_agent: userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
       });
       
-      if (response.data.test_result) {
-        alert(`Session cookie updated successfully!\nTest Result: ${response.data.test_result}`);
+      const testResult = response.data.test_result || "Unknown";
+      setLastCookieTest(testResult);
+      
+      if (testResult.includes('VALID')) {
+        alert(`✅ Session cookie updated successfully!\nStatus: ${testResult}\n\nReal TradingView data is now available!`);
       } else {
-        alert("Session cookie updated successfully!");
+        alert(`⚠️ Cookie updated but test failed!\nStatus: ${testResult}\n\nPlease check your cookie value.`);
       }
       
       setCookieValue("");
@@ -135,7 +138,7 @@ const ForexTradingBot = () => {
     } catch (error) {
       console.error("Error updating cookie:", error);
       const errorMsg = error.response?.data?.detail || "Error updating session cookie";
-      alert(`Failed to update cookie: ${errorMsg}`);
+      alert(`❌ Failed to update cookie: ${errorMsg}`);
     }
   };
 
