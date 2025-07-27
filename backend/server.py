@@ -109,29 +109,41 @@ class TradingViewScraper:
         return False
     
     async def scrape_tradingview_data(self, symbol: str, timeframe: str) -> Optional[Dict]:
-        """Scrape OHLCV data from TradingView with anti-detection"""
+        """Scrape OHLCV data from TradingView - REAL DATA ONLY"""
         try:
             # Random delay for anti-detection
-            await asyncio.sleep(random.uniform(2, 5))
+            await asyncio.sleep(random.uniform(1, 3))
             
-            # Get session or use fallback
+            # Get session or fail - NO FALLBACK TO DEMO DATA
             if not await self.get_active_session():
-                return await self.fallback_data_source(symbol, timeframe)
+                logger.error("No active TradingView session cookie - cannot proceed without real data")
+                return None
             
             headers = {
                 "User-Agent": self.current_user_agent or random.choice(USER_AGENTS),
                 "Cookie": self.current_cookie,
                 "Referer": "https://www.tradingview.com/",
                 "Accept": "application/json, text/javascript, */*; q=0.01",
-                "X-Requested-With": "XMLHttpRequest"
+                "X-Requested-With": "XMLHttpRequest",
+                "Origin": "https://www.tradingview.com"
             }
             
-            # TradingView API endpoint (simplified for demo)
-            url = f"https://scanner.tradingview.com/forex/scan"
+            # TradingView Scanner API for real-time data
+            url = "https://scanner.tradingview.com/forex/scan"
+            
+            # Map our symbols to TradingView format
+            tv_symbol_map = {
+                "EURUSD": "FX_IDC:EURUSD",
+                "GBPUSD": "FX_IDC:GBPUSD", 
+                "USDJPY": "FX_IDC:USDJPY",
+                "XAUUSD": "FX_IDC:XAUUSD"
+            }
+            
+            tv_symbol = tv_symbol_map.get(symbol, f"FX_IDC:{symbol}")
             
             payload = {
-                "filter": [{"left": "name", "operation": "match", "right": symbol}],
-                "columns": ["name", "close", "high", "low", "open", "volume"],
+                "filter": [{"left": "name", "operation": "match", "right": tv_symbol}],
+                "columns": ["name", "close", "high", "low", "open", "volume", "change", "Recommend.All"],
                 "sort": {"sortBy": "name", "sortOrder": "asc"},
                 "range": [0, 50]
             }
@@ -139,64 +151,105 @@ class TradingViewScraper:
             async with self.session.post(url, json=payload, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return self.process_tradingview_data(data, symbol)
+                    processed_data = self.process_tradingview_data(data, symbol, tv_symbol)
+                    if processed_data:
+                        logger.info(f"Successfully scraped real data for {symbol}: {processed_data['close']}")
+                        return processed_data
+                    else:
+                        logger.error(f"No data found for {symbol} in TradingView response")
+                        return None
                 else:
-                    logger.warning(f"TradingView scraping failed with status {response.status}")
-                    return await self.fallback_data_source(symbol, timeframe)
+                    logger.error(f"TradingView scraping failed with status {response.status}")
+                    # Try alternative endpoint
+                    return await self.scrape_tradingview_alternative(symbol, headers)
                     
         except Exception as e:
-            logger.error(f"TradingView scraping error: {e}")
-            return await self.fallback_data_source(symbol, timeframe)
+            logger.error(f"TradingView scraping error for {symbol}: {e}")
+            return None
     
-    def process_tradingview_data(self, data: Dict, symbol: str) -> Dict:
+    def process_tradingview_data(self, data: Dict, symbol: str, tv_symbol: str) -> Optional[Dict]:
         """Process TradingView response data"""
         try:
-            for item in data.get("data", []):
-                if symbol.upper() in item["d"][0].upper():
+            if not data.get("data"):
+                return None
+                
+            for item in data["data"]:
+                if tv_symbol in item["d"][0]:
+                    # TradingView data format: [name, close, high, low, open, volume, change, recommendation]
                     return {
                         "symbol": symbol,
-                        "open": item["d"][4],
-                        "high": item["d"][2],
-                        "low": item["d"][3],
-                        "close": item["d"][1],
-                        "volume": item["d"][5] if len(item["d"]) > 5 else 1000000,
-                        "timestamp": datetime.utcnow()
+                        "close": float(item["d"][1]) if item["d"][1] is not None else None,
+                        "high": float(item["d"][2]) if item["d"][2] is not None else None,
+                        "low": float(item["d"][3]) if item["d"][3] is not None else None,
+                        "open": float(item["d"][4]) if item["d"][4] is not None else None,
+                        "volume": int(item["d"][5]) if item["d"][5] is not None else 1000000,
+                        "change": float(item["d"][6]) if item["d"][6] is not None else 0,
+                        "recommendation": item["d"][7] if len(item["d"]) > 7 else None,
+                        "timestamp": datetime.utcnow(),
+                        "source": "TradingView_Real"
                     }
             return None
         except Exception as e:
             logger.error(f"Error processing TradingView data: {e}")
             return None
     
-    async def fallback_data_source(self, symbol: str, timeframe: str) -> Dict:
-        """Fallback to demo data when TradingView fails"""
-        logger.info(f"Using fallback data for {symbol}")
-        
-        # Generate realistic demo data based on symbol
-        base_prices = {
-            "EURUSD": 1.0850,
-            "GBPUSD": 1.2650,
-            "USDJPY": 149.50,
-            "XAUUSD": 2020.00
-        }
-        
-        base_price = base_prices.get(symbol, 1.0000)
-        volatility = random.uniform(0.001, 0.005)
-        
-        # Generate OHLC
-        open_price = base_price + random.uniform(-volatility, volatility)
-        close_price = open_price + random.uniform(-volatility, volatility)
-        high_price = max(open_price, close_price) + random.uniform(0, volatility/2)
-        low_price = min(open_price, close_price) - random.uniform(0, volatility/2)
-        
-        return {
-            "symbol": symbol,
-            "open": round(open_price, 5),
-            "high": round(high_price, 5),
-            "low": round(low_price, 5),
-            "close": round(close_price, 5),
-            "volume": random.randint(500000, 2000000),
-            "timestamp": datetime.utcnow()
-        }
+    async def scrape_tradingview_alternative(self, symbol: str, headers: Dict) -> Optional[Dict]:
+        """Alternative TradingView endpoint for real data"""
+        try:
+            # Try TradingView chart data API
+            url = f"https://symbol-search.tradingview.com/symbol_search/?text={symbol}&hl=1&exchange=&lang=en&search_type=undefined&domain=production"
+            
+            async with self.session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data and len(data) > 0:
+                        symbol_info = data[0]
+                        # This gives us symbol info, we need to get price data separately
+                        return await self.get_price_from_symbol_info(symbol, symbol_info, headers)
+                        
+        except Exception as e:
+            logger.error(f"Alternative scraping failed for {symbol}: {e}")
+            
+        return None
+    
+    async def get_price_from_symbol_info(self, symbol: str, symbol_info: Dict, headers: Dict) -> Optional[Dict]:
+        """Get current price from symbol info"""
+        try:
+            # Extract the full symbol name
+            full_symbol = symbol_info.get("symbol")
+            if not full_symbol:
+                return None
+                
+            # Use quotes API
+            url = "https://symbol-search.tradingview.com/quotes"
+            payload = {"symbols": [full_symbol]}
+            
+            async with self.session.post(url, json=payload, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data and "quotes" in data and len(data["quotes"]) > 0:
+                        quote = data["quotes"][0]
+                        return {
+                            "symbol": symbol,
+                            "close": quote.get("price", 0),
+                            "high": quote.get("high", quote.get("price", 0)),
+                            "low": quote.get("low", quote.get("price", 0)),
+                            "open": quote.get("open", quote.get("price", 0)),
+                            "volume": quote.get("volume", 1000000),
+                            "change": quote.get("change", 0),
+                            "timestamp": datetime.utcnow(),
+                            "source": "TradingView_Alternative"
+                        }
+                        
+        except Exception as e:
+            logger.error(f"Price extraction failed: {e}")
+            
+        return None
+
+    async def fallback_data_source(self, symbol: str, timeframe: str) -> Optional[Dict]:
+        """REMOVED - Only real data allowed"""
+        logger.error(f"Real data unavailable for {symbol} - not generating fallback data")
+        return None
 
 # ICT/SMC Analysis Engine
 class ICTAnalyzer:
