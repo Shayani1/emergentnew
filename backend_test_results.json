@@ -1,0 +1,84 @@
+{
+  "timestamp": "2025-07-27T17:18:41.257792",
+  "total_tests": 15,
+  "passed_tests": 15,
+  "failed_tests": 0,
+  "success_rate": 100.0,
+  "test_results": {
+    "Health Check": {
+      "passed": true,
+      "details": "Status: active",
+      "timestamp": "2025-07-27T17:17:47.914828"
+    },
+    "Performance Endpoint": {
+      "passed": true,
+      "details": "Total signals: 0, Avg confidence: 0%",
+      "timestamp": "2025-07-27T17:17:47.964029"
+    },
+    "Signals Endpoint": {
+      "passed": true,
+      "details": "Retrieved 0 signals",
+      "timestamp": "2025-07-27T17:17:48.012115"
+    },
+    "Generate Signal - EURUSD": {
+      "passed": true,
+      "details": "No signal generated (insufficient confluence)",
+      "timestamp": "2025-07-27T17:17:51.175526"
+    },
+    "Generate Signal - GBPUSD": {
+      "passed": true,
+      "details": "No signal generated (insufficient confluence)",
+      "timestamp": "2025-07-27T17:17:55.764479"
+    },
+    "Generate Signal - USDJPY": {
+      "passed": true,
+      "details": "No signal generated (insufficient confluence)",
+      "timestamp": "2025-07-27T17:17:58.256796"
+    },
+    "Generate Signal - XAUUSD": {
+      "passed": true,
+      "details": "No signal generated (insufficient confluence)",
+      "timestamp": "2025-07-27T17:18:01.617850"
+    },
+    "Market Data - EURUSD": {
+      "passed": true,
+      "details": "Price: 1.08498",
+      "timestamp": "2025-07-27T17:18:04.604824"
+    },
+    "Market Data - GBPUSD": {
+      "passed": true,
+      "details": "Price: 1.26491",
+      "timestamp": "2025-07-27T17:18:07.795814"
+    },
+    "Market Data - USDJPY": {
+      "passed": true,
+      "details": "Price: 149.49448",
+      "timestamp": "2025-07-27T17:18:12.679538"
+    },
+    "Market Data - XAUUSD": {
+      "passed": true,
+      "details": "Price: 2019.99911",
+      "timestamp": "2025-07-27T17:18:17.662639"
+    },
+    "Scan All Pairs": {
+      "passed": true,
+      "details": "Generated 0 signals",
+      "timestamp": "2025-07-27T17:18:29.174053"
+    },
+    "Session Cookie": {
+      "passed": true,
+      "details": "Cookie stored with ID: 38803436-2192-4805-991b-b2a9d3075d2e",
+      "timestamp": "2025-07-27T17:18:29.233522"
+    },
+    "Signal Structure Validation": {
+      "passed": true,
+      "details": "No signal generated (acceptable)",
+      "timestamp": "2025-07-27T17:18:33.067112"
+    },
+    "Confluence Scoring System": {
+      "passed": true,
+      "details": "Confluence requirements properly enforced",
+      "timestamp": "2025-07-27T17:18:41.257109"
+    }
+  }
+}
