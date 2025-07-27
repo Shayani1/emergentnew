@@ -174,6 +174,13 @@ const ForexTradingBot = () => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
+                <div className="text-sm text-blue-200">Market Status</div>
+                <div className={`text-lg font-bold flex items-center ${marketStatus.isOpen ? 'text-green-300' : 'text-red-300'}`}>
+                  <span className={`w-2 h-2 rounded-full mr-2 ${marketStatus.isOpen ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                  {marketStatus.isOpen ? 'OPEN' : 'CLOSED'}
+                </div>
+              </div>
+              <div className="text-right">
                 <div className="text-sm text-blue-200">Total Signals</div>
                 <div className="text-2xl font-bold">{performance.total_signals || 0}</div>
               </div>
