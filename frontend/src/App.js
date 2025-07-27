@@ -54,12 +54,16 @@ const ForexTradingBot = () => {
     }
   };
 
-  const fetchPerformance = async () => {
+  const fetchMarketStatus = async () => {
     try {
       const response = await axios.get(`${API}/performance`);
-      setPerformance(response.data);
+      // We'll add market status to the performance endpoint response
+      setMarketStatus({
+        isOpen: true, // Default for now
+        session: "LIVE"
+      });
     } catch (error) {
-      console.error("Error fetching performance:", error);
+      console.error("Error fetching market status:", error);
     }
   };
 
