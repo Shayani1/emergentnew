@@ -654,25 +654,72 @@ class SignalGenerator:
             "risk_reward": 2.5
         }
     
+    def is_market_open(self) -> bool:
+        """Check if forex market is currently open"""
+        try:
+            import pytz
+            
+            utc_now = datetime.now(pytz.UTC)
+            
+            # Forex market is open 24/5 from Sunday 21:00 UTC to Friday 21:00 UTC
+            weekday = utc_now.weekday()  # 0=Monday, 6=Sunday
+            hour = utc_now.hour
+            
+            # Friday after 21:00 UTC - market closed
+            if weekday == 4 and hour >= 21:
+                return False
+            
+            # Saturday - market closed
+            if weekday == 5:
+                return False
+                
+            # Sunday before 21:00 UTC - market closed
+            if weekday == 6 and hour < 21:
+                return False
+                
+            # All other times - market open
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error checking market hours: {e}")
+            return True  # Default to open if error
+    
     def get_trading_session(self) -> str:
-        """Determine current trading session"""
-        from datetime import datetime
-        import pytz
-        
-        utc_now = datetime.now(pytz.UTC)
-        london_time = utc_now.astimezone(pytz.timezone('Europe/London'))
-        ny_time = utc_now.astimezone(pytz.timezone('America/New_York'))
-        
-        hour = utc_now.hour
-        
-        if 8 <= hour < 17:
-            return "LONDON"
-        elif 13 <= hour < 22:
-            return "NEW_YORK"
-        elif 22 <= hour or hour < 8:
-            return "ASIAN"
-        else:
-            return "OVERLAP"
+        """Determine current trading session with priority levels"""
+        try:
+            import pytz
+            
+            utc_now = datetime.now(pytz.UTC)
+            hour = utc_now.hour
+            
+            # London session: 8:00-17:00 UTC (High Priority)
+            # New York session: 13:00-22:00 UTC (High Priority)  
+            # London/NY Overlap: 13:00-17:00 UTC (HIGHEST Priority)
+            # Asian session: 22:00-08:00 UTC (Medium Priority)
+            
+            if 13 <= hour < 17:
+                return "LONDON_NY_OVERLAP"  # Highest priority
+            elif 8 <= hour < 13:
+                return "LONDON_ONLY"
+            elif 17 <= hour < 22:
+                return "NEW_YORK_ONLY" 
+            else:
+                return "ASIAN"
+                
+        except Exception as e:
+            logger.error(f"Error determining session: {e}")
+            return "UNKNOWN"
+    
+    def get_session_priority(self, session: str) -> int:
+        """Get session priority for signal generation frequency"""
+        priorities = {
+            "LONDON_NY_OVERLAP": 5,  # Generate signals every 5 minutes
+            "LONDON_ONLY": 3,        # Generate signals every 15 minutes
+            "NEW_YORK_ONLY": 3,      # Generate signals every 15 minutes
+            "ASIAN": 1,              # Generate signals every 60 minutes
+            "UNKNOWN": 1
+        }
+        return priorities.get(session, 1)
     
     async def send_telegram_signal(self, signal: TradingSignal):
         """Send signal to Telegram"""
